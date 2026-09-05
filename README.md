@@ -1,116 +1,130 @@
-# 掌上表态 / Palm Vote
+# Palm Vote
 
-一个在桌面浏览器中运行的本地实时互动应用。用户张开手掌后，手掌正面朝向画面显示绿色 **✓**，翻转到手背显示红色 **✕**。视频帧只在当前设备内存中处理。
+A real-time interactive web app for desktop browsers. Raise an open hand with your palm facing the video to show a green **✓**. Flip your hand so the back faces the video to show a red **✕**. Video frames are processed locally in device memory.
 
-界面支持中文和英文。首次访问跟随浏览器语言，之后在本机记住用户选择。控制栏中的“使用说明 / Instructions”按钮可打开英文图示说明。
+The interface supports English and Simplified Chinese. On your first visit, Chinese browser languages select Chinese; other browser languages select English. Use the language button in the header to switch. Your choice is remembered locally. The **Instructions** button opens an English visual guide.
 
-## 版本与回退
+## Run locally
 
-- 当前升级版：`outputs/palm-vote`
-- 摄像头旧版完整副本：`outputs/palm-vote-v1-camera-2026-09-03`
+Install pnpm and a compatible Node.js version: Node.js 20.19+ within the 20.x series, or Node.js 22.12 or later, as required by Vite 8.
 
-旧版可独立运行：
-
-```bash
-cd outputs/palm-vote-v1-camera-2026-09-03
-pnpm dev -- --port 4174
-```
-
-## 本地运行
-
-需要 Node.js 20 或更高版本及 pnpm。
+Run these commands from the repository root:
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-打开 `http://127.0.0.1:4173`。生产检查：
+Open `http://127.0.0.1:4173`. To run the tests and create a production build:
 
 ```bash
 pnpm test
 pnpm build
 ```
 
-目标浏览器为最新版 Chrome 和 Microsoft Edge；页面必须通过 localhost、127.0.0.1 或 HTTPS 打开。
+The production output is written to `dist/`. Use the latest Chrome or Microsoft Edge. Camera and screen capture require localhost, 127.0.0.1, or HTTPS.
 
-## 在 Teams 中使用
+## Use with Teams
 
-1. 在工具中选择“Teams 屏幕/窗口”，点击“选择 Teams 窗口”。
-2. 在浏览器系统共享选择器中选择 Teams 窗口，不要选择本工具窗口。
-3. 保持 Teams 窗口可见且不要最小化。
-4. 如需所有参会者看到处理结果，在 Teams 中共享“掌上表态 / Palm Vote”浏览器窗口。
+1. Ask participants to turn on their Teams cameras and raise an open hand: palm facing the camera for **✓**, back of the hand for **✕**.
+2. In Palm Vote, select **Teams screen/window**, then click **Choose Teams window**.
+3. Select the Teams window in the browser's sharing picker. Avoid selecting the Palm Vote window itself.
+4. Keep the Teams window visible and not minimized.
+5. To let everyone see the results, share the processed Palm Vote browser window in Teams.
 
-推荐双屏或分离窗口：一个窗口保持 Teams 画廊，另一个显示并共享处理结果。浏览器安全规则要求每次重新启动屏幕识别时手动选择共享来源，应用不能代替用户授权。
+Use separate windows or two displays: one shows the Teams gallery, and the other shows and shares the processed results. The browser requires you to select the capture source each time you start screen recognition.
 
-## 目录结构
+For a directly connected camera, select **Local camera**, choose a camera device, and click **Start camera**. Use **Mirror** to adjust the preview and **Stop recognition** to release the video source.
+
+## Project structure
 
 ```text
 src/
-├─ capture/CaptureManager.ts       # 屏幕与摄像头流、权限及资源释放
-├─ vision/HandDetector.ts          # MediaPipe 检测、Teams 分区扫描及坐标映射
-├─ orientation/PalmOrientation.ts # 开放手掌置信度和正反判断
-├─ tracking/HandTracker.ts         # 24 手 ID、状态隔离、平滑与遮挡恢复
-├─ render/PaddleRenderer.ts        # 视频、握持式手举牌和调试层
-├─ hooks/useHandExperience.ts      # 实时识别循环与界面状态
-├─ components/                     # 双语界面组件
-├─ config.ts                       # 集中可调参数
-└─ *.test.ts                       # 姿态、追踪、分区和语言测试
+├─ capture/CaptureManager.ts       # Screen/camera streams, permissions, and cleanup
+├─ vision/HandDetector.ts          # MediaPipe detection, region scanning, coordinate mapping
+├─ orientation/PalmOrientation.ts # Open-hand confidence and palm/back classification
+├─ tracking/HandTracker.ts         # Up to 24 hand IDs, independent states, smoothing, occlusion
+├─ render/PaddleRenderer.ts        # Video, virtual paddles, and debug overlay
+├─ hooks/useHandExperience.ts      # Real-time detection loop and UI state
+├─ components/                    # Bilingual interface components
+├─ config.ts                      # Detection and tracking parameters
+└─ *.test.ts                      # Orientation, tracking, region, and language tests
+public/
+├─ assets/                        # English instruction poster
+├─ models/                        # Hand Landmarker model
+└─ wasm/                          # MediaPipe WebAssembly runtime
 ```
 
-模型和 WebAssembly 位于 `public/`，不依赖远程 CDN。
+The model and WebAssembly runtime are served from `public/`; no external model CDN is required. Keep `src/`, `public/`, `package.json`, and `index.html` directly in the repository root. If uploading in batches, upload the contents of each batch folder rather than the numbered wrapper folders.
 
-## 技术与隐私
+## Technology and privacy
 
-- React 19、Vite 8：界面和构建，MIT。
-- MediaPipe Tasks Vision 1.0.1 与 Hand Landmarker：21 点手部关键点，Apache-2.0。
-- Screen Capture API / Camera API：读取用户主动选择的 Teams 窗口或摄像头。
-- Canvas 2D：绘制视频、虚拟牌、动画及可选调试信息。
+- React 19 and Vite 8: interface and build tooling; MIT licenses.
+- MediaPipe Tasks Vision 1.0.1 and Hand Landmarker: 21-point hand landmarks; Apache-2.0 licenses.
+- Screen Capture API and Camera API: access to the window or camera explicitly selected by the user.
+- Canvas 2D: video rendering, virtual paddles, animations, and optional debugging information.
 
-应用不上传、保存、截图或录制视频，不采集共享音频，也不进行人脸、身份或参会者识别。停止识别、停止共享或关闭网页后会立即释放视频轨道。
+Palm Vote does not upload, save, take screenshots of, or record captured video. It does not capture shared audio or perform face recognition, identity detection, or participant identification. Video tracks are released when recognition stops, sharing ends, or the page closes. If you share the processed window in Teams, that sharing is handled by Teams.
 
-## 手掌正反与翻转判断
+## Palm orientation and flipping
 
-算法使用腕点、食指 MCP 和小指 MCP 形成的二维有向掌平面，并以 MediaPipe 左右手结果归一化绕向。完整画面时检查四根手指；手掌被边缘截断时，只要至少两根手指和对应 MCP/PIP 关键点清晰可见即可尝试判断，证据不足时不猜测。
+The algorithm computes a normalized signed area from the wrist, index-finger base joint (MCP), and little-finger MCP. MediaPipe's left/right hand classification normalizes the sign. When a base joint is outside the frame, the algorithm uses the outermost visible finger base joints where sufficient evidence remains.
 
-正反面分数由两部分组成：
+Open-hand confidence is based on finger extension and fingertip distance from the wrist. With a fully visible hand, the algorithm evaluates all four non-thumb fingers. A cropped hand may still be classified if at least two extended fingers and their base and middle (PIP) joints remain visible. Insufficient evidence produces an uncertain result.
 
-- 归一化绕向为正且手掌充分张开：手掌正面，显示 ✓
-- 归一化绕向为负且手掌充分张开：手背，显示 ✕
+- Positive normalized sign with sufficient open-hand confidence: **palm**, showing **✓**.
+- Negative normalized sign with sufficient open-hand confidence: **back of hand**, showing **✕**.
 
-朝向置信度至少为 0.42，连续 3 帧且持续 100 ms 才切换。侧面、未张开或低置信度期间保持最近可信状态，持续超过 900 ms 后隐藏。
+A new orientation must reach at least 0.42 confidence, remain consistent for 3 observations, and last at least 100 ms before switching. Side-on, closed, or low-confidence hands retain the last trusted state temporarily; the paddle is hidden after 900 ms without a trusted orientation.
 
-## Teams 多人和会议室画面
+## Multiple people and meeting-room video
 
-摄像头模式处理完整画面。Teams 模式将画面分成带 12% 重叠的 2×2 区域，每约 25 ms 轮询一个区域，使小视频格中的手获得约两倍有效尺寸。区域结果映射回全画面坐标，并由一个最多 24 轨迹的追踪器统一去重。
+Camera mode processes the full frame. Teams screen mode scans a 2×2 grid with 12% overlap, targeting one region every 25 ms. Cropping gives small hands in remote video tiles approximately twice the effective scale. Regional detections are mapped back to full-frame coordinates and deduplicated by a shared tracker supporting up to 24 hand tracks.
 
-只把当前扫描区中的未匹配轨迹标记为缺失，因此扫描其他区域时不会让已有手势闪烁。每条轨迹分别保存手掌朝向、防抖和 ✓/✕ 状态；某位同事翻转手掌不会改变其他人的结果。
+Only unmatched tracks in the currently scanned region are marked missing. Scanning another region therefore does not immediately hide existing hands. Each track independently maintains its orientation, debounce history, and **✓/✕** state. One participant flipping a hand does not change another hand's result; two hands from the same participant are also tracked independently.
 
-## 手持牌渲染
+## Paddle appearance and instruction image
 
-手举牌以腕点和掌指关节计算手掌中心与方向，显示在手掌附近并随手部移动、旋转和缩放。牌面半径按手掌宽度自动调整，并保留完整手柄、翻转动画和遮挡渐隐。
+Paddles are positioned near the palm using wrist and finger-base landmarks. They follow hand movement, rotation, and scale. Paddle radius adjusts to palm width, with a complete handle, flip animation, and gradual fading during occlusion.
 
-样式位于 `src/render/PaddleRenderer.ts` 的 `drawPaddle()`；可调整主色、外沿、手柄、圆形牌面和 ✓/✕ 路径，也可替换为透明 PNG/SVG。
+To customize the paddle, edit `drawPaddle()` in `src/render/PaddleRenderer.ts`. It draws the colors, border, handle, circular face, and **✓/✕** paths. Rendering can also be adapted to use a transparent PNG or SVG.
 
-## 关键参数
+To replace the English instruction poster, replace `public/assets/palm-vote-instructions-en.png` while keeping the same filename. The **Instructions** dialog loads this local image. Update its alternative text in `src/i18n.ts` if the image's meaning changes.
 
-| 参数 | 默认值 | 作用 |
+## Key parameters
+
+Edit the values in `src/config.ts`:
+
+| Parameter | Default | Purpose |
 |---|---:|---|
-| `maxHands` | 24 | 全局最大手部轨迹 |
-| `inferenceIntervalMs` | 25 ms | 推理轮询间隔；Teams 四区约 100 ms 完成一轮 |
-| `minDetectionConfidence` | 0.46 | 首次检测阈值（边缘/小画面优先召回） |
-| `orientationConfidence` | 0.42 | 正反面可信阈值 |
-| `orientationStableFrames` | 3 | 切换所需连续帧数 |
-| `orientationStableMs` | 100 ms | 切换所需持续时间 |
-| `lowConfidenceHideMs` | 900 ms | 方向不可信后的隐藏时间 |
-| `occlusionHoldMs` | 650 ms | 短暂遮挡保留 |
-| `trackMaxAgeMs` | 1400 ms | 轨迹删除时间 |
-| `screenRegionOverlap` | 0.12 | Teams 分区重叠比例 |
+| `maxHands` | 24 | Maximum number of tracked hands across the frame |
+| `inferenceIntervalMs` | 25 ms | Target scan interval; a four-region cycle targets about 100 ms, subject to processing time |
+| `minDetectionConfidence` | 0.46 | Initial detection threshold, tuned to improve detection of small or cropped hands |
+| `orientationConfidence` | 0.42 | Minimum confidence for a trusted orientation |
+| `orientationStableFrames` | 3 | Consecutive observations required before switching |
+| `orientationStableMs` | 100 ms | Minimum duration of a stable candidate orientation |
+| `smoothingAlpha` | 0.36 | Position smoothing coefficient |
+| `lowConfidenceHideMs` | 900 ms | Time before hiding a paddle with an uncertain orientation |
+| `occlusionHoldMs` | 650 ms | Hold time for a briefly occluded hand |
+| `trackMaxAgeMs` | 1400 ms | Maximum time to retain a missing track |
+| `screenRegionOverlap` | 0.12 | Overlap between adjacent Teams scan regions |
 
-## 已知限制
+## Versions and rollback
 
-- Teams 的网络压缩、运动模糊、暗光和很小的视频格会直接影响关键点质量；边缘截断时至少保留两根清晰伸展的手指和掌指关节。
-- Teams 重排视频格、切换主讲人或手部长时间完全重叠后，追踪 ID 可能重新分配。
-- 浏览器不能后台读取 Teams、绕过系统共享选择器或保证最小化窗口继续出帧。
-- 本地同时检测 24 只手取决于电脑 GPU/CPU；帧率不足时优先降低 `maxHands` 或提高 `inferenceIntervalMs`。
-- 自动测试覆盖算法和页面状态；真实 Teams 压缩画质及超过 24 人现场效果仍需在目标会议环境中校准。
+In the original development workspace, the current application is stored at `outputs/palm-vote`. A separate camera-only backup is stored at `outputs/palm-vote-v1-camera-2026-09-03`. That backup is not included in this repository or the GitHub source package.
+
+If you have the original workspace, run the backup independently from its workspace root:
+
+```bash
+cd outputs/palm-vote-v1-camera-2026-09-03
+pnpm dev -- --port 4174
+```
+
+## Known limitations
+
+- Teams compression, motion blur, poor lighting, and very small video tiles reduce landmark quality. For cropped hands, keep at least two extended fingers and their joints clearly visible.
+- Tracking IDs may change when Teams rearranges tiles, switches the active speaker, or hands remain fully overlapped for an extended period.
+- Browsers require explicit screen-sharing permission and cannot guarantee that minimized windows continue producing video frames.
+- Tracking up to 24 hands depends on local CPU/GPU performance and input resolution. If performance drops, reduce `maxHands` or increase `inferenceIntervalMs`.
+- The limit is 24 hands, not 24 participants. Larger meetings can be captured, but no more than 24 hands are tracked simultaneously.
+- Automated tests cover orientation, tracking, region handling, and language selection. Recognition speed and accuracy in actual Teams meetings still require validation with the target cameras, layouts, and network conditions.
